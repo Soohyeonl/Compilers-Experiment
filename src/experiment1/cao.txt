@@ -1,0 +1,161 @@
+package experiment1;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class DFArecognition {
+    private Map<String, Map<String, String>> DFATable;
+    private ArrayList<String> value;
+    private ArrayList<String> state;
+
+    public DFArecognition() {
+        DFATable = new HashMap<>();
+        value = new ArrayList<>();
+        state = new ArrayList<>();
+    }
+
+    public ArrayList<String> getSubUtil(String soap, String rgex) {
+        ArrayList<String> list = new ArrayList<String>();
+        Pattern pattern = Pattern.compile(rgex);
+        Matcher m = pattern.matcher(soap);
+        while (m.find()) {
+            list.add(m.group(1));
+        }
+        return list;
+    }
+
+
+    public void input() {
+        char src = 0;
+        StringBuilder inputValue = new StringBuilder();
+        while (true) {
+            try {
+                src = (char) System.in.read();
+                String testchar = String.valueOf(src);
+                inputValue.append(testchar);
+                if (src == '#') {
+                    src = (char) System.in.read();
+                    break;
+                }
+            } catch (IOException ignored) {
+            }
+        }
+//        while (inputValue.equals("") && in.hasNextLine()) {
+//            inputValue = in.nextLine();
+//        }
+        value = getSubUtil(inputValue.toString(), "([a-z])");
+        //System.out.println(value);
+        StringBuilder inputState = new StringBuilder();
+        while (true) {
+            try {
+                src = (char) System.in.read();
+                String testchar = String.valueOf(src);
+                inputState.append(testchar);
+                if (src == '#') {
+                    src = (char) System.in.read();
+                    break;
+                }
+            } catch (IOException ignored) {
+            }
+        }
+//        while (inputState.equals("") && in.hasNextLine()) {
+//            inputState = in.nextLine();
+//        }
+        state = getSubUtil(inputState.toString(), "([a-zA-Z0-9])");
+        //System.out.println(state);
+        StringBuilder edge;
+        int flag = 0;
+        outer:
+        while (true) {
+            ArrayList<String> table;
+            Map<String, String> aMap = new HashMap<>();
+            edge = new StringBuilder();
+            while (true) {
+                try {
+                    src = (char) System.in.read();
+                    String testchar = String.valueOf(src);
+
+                    if (src == '#') {
+                        break;
+                    }
+                    if (src == '\n') {
+                        flag++;
+                        if (flag == 2) {
+                            break outer;
+                        }
+                        break;
+                    } else {
+                        flag = 0;
+                    }
+                    edge.append(testchar);
+                } catch (IOException ignored) {
+                }
+            }
+            if (edge.toString().equals("")) {
+                break;
+            }
+            String s = edge.substring(0, 1);
+            table = getSubUtil(edge.toString(), "(\\S->\\S)");
+            table.forEach(x -> aMap.put(x.substring(0, 1), x.substring(3, 4)));
+            DFATable.put(s, aMap);
+        }
+        //System.out.println(DFATable);
+    }
+
+    public boolean test(String str) {
+        int length = str.length();
+        String nowState = "X";
+        for (int i = 0; i < length - 1; i++) {
+            String nowValue = str.substring(i, i + 1);
+            if (DFATable.get(nowState) != null && DFATable.get(nowState).get(nowValue) != null) {
+                System.out.println(nowValue);
+                nowState = DFATable.get(nowState).get(nowValue);
+            } else {
+                return false;
+            }
+        }
+        return nowState.equals("Y");
+    }
+
+    public static void main(String[] args) throws IOException {
+        DFArecognition aDFA = new DFArecognition();
+        aDFA.input();
+        StringBuilder testStr = new StringBuilder();
+        boolean test;
+        int flag = 0;
+
+        outer:
+        while (true) {
+            testStr = new StringBuilder();
+            char src = 0;
+            if (flag != 0) {
+                src = (char) System.in.read();
+            }
+            while (true) {
+                try {
+                    src = (char) System.in.read();
+                    String testchar = String.valueOf(src);
+                    testStr.append(testchar);
+                    if (src == '#') {
+                        break;
+                    }
+                } catch (IOException ignored) {
+                    break outer;
+                }
+            }
+//            testStr = in.nextLine();
+//            while (testStr.equals("") && in.hasNextLine()) {
+//                testStr = in.nextLine();
+//            }
+            test = aDFA.test(testStr.toString());
+            flag++;
+            if (test) {
+                System.out.println("pass");
+            } else {
+                System.out.println("error");
+            }
+        }
+    }
+}
